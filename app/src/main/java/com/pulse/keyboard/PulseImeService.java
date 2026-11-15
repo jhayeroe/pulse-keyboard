@@ -363,7 +363,12 @@ public final class PulseImeService extends InputMethodService {
             if (!candidate.isEmpty() && !recent.contains(candidate) && recent.size() < 6)
                 recent.add(candidate);
         }
-        prefs.edit().putString("recent_emojis", String.join("|", recent)).apply();
+        StringBuilder saved = new StringBuilder();
+        for (String entry : recent) {
+            if (saved.length() > 0) saved.append("|");
+            saved.append(entry);
+        }
+        prefs.edit().putString("recent_emojis", saved.toString()).apply();
     }
 
     private void stopDeleteRepeat() {
