@@ -1,4 +1,4 @@
-# Pulse Keyboard — Android Alpha (0.3)
+# Pulse Keyboard — Android Alpha (0.4)
 
 An **offline, one-handed, 3×4 Android keyboard** for Filipino/English typing.
 
@@ -8,10 +8,10 @@ An **offline, one-handed, 3×4 Android keyboard** for Filipino/English typing.
 - **Classic ABC multi-tap is the default**: press 6 once for M, twice for N, three times for O. T9 predictive typing is optional, and the last selected mode is remembered.
 - Three suggestions with an offline English/Tagalog starter dictionary.
 - User-added personal words are stored **locally**; no automatic harvesting of typed text.
-- Left or right alignment (default right), adjustable width (60–100%) and compact key height (38–66dp, default 44dp).
+- **Full-width split keyboard:** 25% compact utility panel on the left, 75% 3×4 keypad on the right. Switch sides if needed; adjust the main keypad share to 65–85% in settings. Key height 38–66dp (default 44dp).
 - Compact layout, 3×4 keypad: 1–9, * = Backspace, 0 = Space, # = Enter.
-- Bottom controls: 123 | ← | →; right arrow confirms an active multi-tap letter.
-- Shift, numeric mode, symbols, simple emoji/recent choices, and manual clipboard paste.
+- Left-panel controls: ABC/T9, Shift, Symbols, Emoji, Clipboard paste, Switch Keyboard, Settings, and ← / →. Right arrow confirms an active multi-tap letter.
+- Full-width toolbar, three suggestions, Shift, numeric mode, symbols, simple emoji/recent choices, and manual clipboard paste.
 - A dedicated 🌐 switcher on the keyboard and **Switch Keyboard** in Settings open Android's input-method picker to return to your old keyboard.
 - Password fields suppress suggestions, word saving, and clipboard access.
 - Theme follows Android light/dark mode.
@@ -60,3 +60,7 @@ Real-device testing, richer Filipino dictionary, more advanced emoji/clipboard U
 ## Alpha 0.3 typing fix
 
 The keyboard now selects **ABC multi-tap** on first launch and once when upgrading from an earlier alpha. After that, it remembers the mode you choose. In ABC mode, each rapid press on the same digit **replaces** the prior letter, rather than appending another. The editor receives a committed letter plus an atomic delete-and-replace within a batch edit; the old composing-span-only approach was unreliable in some chat applications. Phone testing is still required.
+
+## Alpha 0.4 layout update
+
+The previously 75%-wide *entire keyboard* is now replaced by a **full-width 25/75 split**. The left panel contains compact utility controls, while the 3×4 phone keypad receives 75% of the available width. The 3×4 bottom row remains `* = Backspace`, `0 = Space`, `# = Enter / Next`. The width slider now means **main keypad share**, not overall keyboard width. The build workflow remains unchanged and should produce a fresh alpha prerelease after this commit if GitHub Actions succeeds.
