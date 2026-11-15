@@ -17,6 +17,8 @@ public final class WordRepository {
 
     // Common short words first improve early suggestions; this list is an alpha starter.
     private static final String[] STARTER = (
+        "ano na pare koy pareng kuya ate ka kamusta kumusta salamat " +
+        "gusto pano paano sige pwede po opo nga okay boss pre bro " +
         "the and you for are not but can all was her his she him has had " +
         "have from this that with your will just one two three good great " +
         "hello help home house hope how what when where why who there their " +

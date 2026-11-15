@@ -1,17 +1,18 @@
-# Pulse Keyboard — Android Alpha
+# Pulse Keyboard — Android Alpha (0.2)
 
 An **offline, one-handed, 3×4 Android keyboard** for Filipino/English typing.
 
 ## Current alpha
 
 - Native Android input method (IME), no internet or account needed.
-- T9 predictive typing and classic multi-tap; last typing mode is remembered.
+- T9 predictive typing (default for new installs) and corrected classic multi-tap using a composing letter; last typing mode is remembered.
 - Three suggestions with an offline English/Tagalog starter dictionary.
 - User-added personal words are stored **locally**; no automatic harvesting of typed text.
-- Left or right alignment (default right), adjustable width (60–100%) and key height.
+- Left or right alignment (default right), adjustable width (60–100%) and compact key height (38–66dp, default 44dp).
 - Compact layout, 3×4 keypad: 1–9, * = Backspace, 0 = Space, # = Enter.
 - Bottom controls: 123 | ← | →; right arrow confirms an active multi-tap letter.
 - Shift, numeric mode, symbols, simple emoji/recent choices, and manual clipboard paste.
+- A dedicated 🌐 switcher on the keyboard and **Switch Keyboard** in Settings open Android's input-method picker to return to your old keyboard.
 - Password fields suppress suggestions, word saving, and clipboard access.
 - Theme follows Android light/dark mode.
 
@@ -47,3 +48,11 @@ No INTERNET permission, tracking SDK, or background network calls. Personal dict
 ## Planned follow-ups
 
 Real-device testing, richer Filipino dictionary, more advanced emoji/clipboard UI, accessibility refinements, and stable release signing.
+
+## Typing example
+
+**T9 mode**: To write **Ano na pare koy**, press `266`, Space, `62`, Space, `7273`, Space, `569` (then Space). Tap one number for each letter. The T9 dictionary prioritizes these Tagalog words.
+
+**ABC multi-tap**: Tap key `6` twice quickly for `n`, then press the right-arrow key (→) to confirm before using key `6` three times for `o`. You can also pause for 1.2 seconds instead of pressing →. Unlike the first alpha, cycling edits only the pending composing letter.
+
+**Updating from Alpha 0.1:** GitHub builds may use different debug signing certificates. If Android says **App not installed** when updating, select another keyboard in Android Settings, uninstall the old Pulse Keyboard app, then install this build. Your locally saved personal words and layout settings are reset when uninstalling.

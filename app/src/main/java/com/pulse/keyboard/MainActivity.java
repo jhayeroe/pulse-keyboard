@@ -55,6 +55,11 @@ public final class MainActivity extends Activity {
         }));
         content.addView(button("3. Keyboard Settings",
                 () -> startActivity(new Intent(this, SettingsActivity.class))));
+        content.addView(button("🌐 Switch to another keyboard", () -> {
+            InputMethodManager manager =
+                    (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+            if (manager != null) manager.showInputMethodPicker();
+        }));
         content.addView(label(
                 "Alpha/testing build. Personal words stay on this phone; no internet permission is requested.",
                 13));
