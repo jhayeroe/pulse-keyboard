@@ -69,6 +69,8 @@ public final class PulseImeService extends InputMethodService {
     private boolean darkTheme;
     private String panel = "keys";
     private String t9Digits = "";
+    /** Letter already committed to the editor and eligible for cycling. */
+    private String pendingLetter = "";
     private int backdrop;
     private int face;
     private int toolFace;
@@ -80,7 +82,13 @@ public final class PulseImeService extends InputMethodService {
     @Override public void onCreate() {
         super.onCreate();
         prefs = getSharedPreferences(WordRepository.PREFS, MODE_PRIVATE);
-        t9Mode = prefs.getBoolean("t9_mode", true);
+        // v0.3 migration: use the requested old-phone ABC behavior on upgrade.
+        // Mode selected after this migration is still remembered.
+        if (prefs.getInt("typing_mode_revision", 0) < 3) {
+            prefs.edit().putBoolean("t9_mode", false)
+                    .putInt("typing_mode_revision", 3).apply();
+        }
+        t9Mode = prefs.getBoolean("t9_mode", false);
     }
 
     @Override public boolean onEvaluateFullscreenMode() {
@@ -106,7 +114,7 @@ public final class PulseImeService extends InputMethodService {
         numericMode = kind == InputType.TYPE_CLASS_NUMBER
                 || kind == InputType.TYPE_CLASS_PHONE
                 || kind == InputType.TYPE_CLASS_DATETIME;
-        t9Mode = prefs.getBoolean("t9_mode", true);
+        t9Mode = prefs.getBoolean("t9_mode", false);
         clearState();
         shift = !passwordField && !numericMode;
         panel = "keys";
@@ -251,7 +259,9 @@ public final class PulseImeService extends InputMethodService {
     private void drawToolbar() {
         LinearLayout line = row();
         add(line, passwordField ? "ABC" : (t9Mode ? "T9" : "ABC"),
-                "Toggle T9 predictive or ABC multi-tap", 13, 32, true, () -> {
+                t9Mode ? "T9 predictive is active: tap to enable old-phone ABC"
+                        : "ABC multi-tap is active: tap to enable T9 predictive",
+                13, 32, true, () -> {
                     finishT9();
                     finishMultiTap();
                     if (!passwordField) {
@@ -462,6 +472,7 @@ public final class PulseImeService extends InputMethodService {
         stopTapTimer();
         t9Digits = "";
         multiTapEngine.confirm();
+        pendingLetter = "";
         t9Uppercase = false;
     }
 
@@ -475,21 +486,16 @@ public final class PulseImeService extends InputMethodService {
 
     private void finishMultiTap() {
         stopTapTimer();
-        if (!multiTapEngine.hasPending()) return;
-        InputConnection input = getCurrentInputConnection();
-        if (input != null) input.finishComposingText();
         multiTapEngine.confirm();
+        pendingLetter = "";
     }
 
     private void scheduleTapCommit() {
         stopTapTimer();
-        final InputConnection input = getCurrentInputConnection();
         settleTap = () -> {
-            if (multiTapEngine.hasPending()) {
-                if (input != null) input.finishComposingText();
-                multiTapEngine.confirm();
-                updateSuggestions();
-            }
+            multiTapEngine.confirm();
+            pendingLetter = "";
+            updateSuggestions();
             settleTap = null;
         };
         handler.postDelayed(settleTap, MultiTapEngine.CYCLE_WINDOW_MS);
@@ -522,15 +528,39 @@ public final class PulseImeService extends InputMethodService {
         InputConnection input = getCurrentInputConnection();
         if (input == null) return;
         finishT9();
-        boolean previousPending = multiTapEngine.hasPending();
-        MultiTapEngine.Tap tap =
-                multiTapEngine.onDigit(digit, SystemClock.uptimeMillis(), shift);
-        stopTapTimer();
-        if (previousPending && !tap.cyclesExisting) {
-            input.finishComposingText();
+        long now = SystemClock.uptimeMillis();
+        MultiTapEngine.Tap tap = multiTapEngine.onDigit(digit, now, shift);
+        boolean cycle = tap.cyclesExisting && !pendingLetter.isEmpty();
+
+        // When an editor moved the cursor between taps, never erase unrelated text.
+        // Some password editors intentionally suppress surrounding-text reads.
+        if (cycle && !passwordField) {
+            CharSequence before = input.getTextBeforeCursor(1, 0);
+            if (before != null && (before.length() != 1
+                    || !pendingLetter.contentEquals(before))) {
+                multiTapEngine.confirm();
+                tap = multiTapEngine.onDigit(digit, now, shift);
+                cycle = false;
+            }
         }
-        input.setComposingText(tap.letter, 1);
-        if (!tap.cyclesExisting) shift = false;
+
+        stopTapTimer();
+        // Commit a visible character immediately. On a second/third press,
+        // replace precisely that last character instead of appending. This is
+        // more compatible with chat input fields than relying on composing spans.
+        input.beginBatchEdit();
+        try {
+            if (cycle) {
+                if (!input.deleteSurroundingTextInCodePoints(1, 0)) {
+                    input.deleteSurroundingText(1, 0);
+                }
+            }
+            input.commitText(tap.letter, 1);
+        } finally {
+            input.endBatchEdit();
+        }
+        pendingLetter = tap.letter;
+        if (!cycle) shift = false;
         scheduleTapCommit();
         updateSuggestions();
     }

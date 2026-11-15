@@ -1,11 +1,11 @@
-# Pulse Keyboard — Android Alpha (0.2)
+# Pulse Keyboard — Android Alpha (0.3)
 
 An **offline, one-handed, 3×4 Android keyboard** for Filipino/English typing.
 
 ## Current alpha
 
 - Native Android input method (IME), no internet or account needed.
-- T9 predictive typing (default for new installs) and corrected classic multi-tap using a composing letter; last typing mode is remembered.
+- **Classic ABC multi-tap is the default**: press 6 once for M, twice for N, three times for O. T9 predictive typing is optional, and the last selected mode is remembered.
 - Three suggestions with an offline English/Tagalog starter dictionary.
 - User-added personal words are stored **locally**; no automatic harvesting of typed text.
 - Left or right alignment (default right), adjustable width (60–100%) and compact key height (38–66dp, default 44dp).
@@ -53,6 +53,10 @@ Real-device testing, richer Filipino dictionary, more advanced emoji/clipboard U
 
 **T9 mode**: To write **Ano na pare koy**, press `266`, Space, `62`, Space, `7273`, Space, `569` (then Space). Tap one number for each letter. The T9 dictionary prioritizes these Tagalog words.
 
-**ABC multi-tap**: Tap key `6` twice quickly for `n`, then press the right-arrow key (→) to confirm before using key `6` three times for `o`. You can also pause for 1.2 seconds instead of pressing →. Unlike the first alpha, cycling edits only the pending composing letter.
+**ABC multi-tap**: Tap key `6` twice quickly for `n`, then press the right-arrow key (→) to confirm before using key `6` three times for `o`. You can also pause for 1.2 seconds instead of pressing →. Unlike the first alpha, cycling replaces the already committed last letter, for better compatibility with chat editors. Time window: 1.8 seconds.
 
 **Updating from Alpha 0.1:** GitHub builds may use different debug signing certificates. If Android says **App not installed** when updating, select another keyboard in Android Settings, uninstall the old Pulse Keyboard app, then install this build. Your locally saved personal words and layout settings are reset when uninstalling.
+
+## Alpha 0.3 typing fix
+
+The keyboard now selects **ABC multi-tap** on first launch and once when upgrading from an earlier alpha. After that, it remembers the mode you choose. In ABC mode, each rapid press on the same digit **replaces** the prior letter, rather than appending another. The editor receives a committed letter plus an atomic delete-and-replace within a batch edit; the old composing-span-only approach was unreliable in some chat applications. Phone testing is still required.

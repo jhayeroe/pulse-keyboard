@@ -199,10 +199,10 @@ public final class SettingsActivity extends Activity {
 
         LinearLayout typing = card(root, "Typing", "Choose how the 3×4 keypad enters words.");
         Switch t9 = new Switch(this);
-        t9.setText("Predictive T9 typing");
+        t9.setText("Predictive T9 typing (optional)");
         t9.setTextColor(fg);
         t9.setTextSize(15);
-        t9.setChecked(prefs.getBoolean("t9_mode", true));
+        t9.setChecked(prefs.getBoolean("t9_mode", false));
         t9.setShowText(false);
         t9.setThumbTintList(new ColorStateList(
                 new int[][]{new int[]{android.R.attr.state_checked}, new int[]{}},
@@ -214,7 +214,7 @@ public final class SettingsActivity extends Activity {
                 prefs.edit().putBoolean("t9_mode", checked).apply());
         typing.addView(t9);
         gap(typing, 6);
-        typing.addView(text("T9: one tap per letter. ABC: tap repeatedly to cycle letters.",
+        typing.addView(text("ABC is the default: tap 6 once = M, twice = N, three times = O. T9 uses one key press for each letter.",
                 13, muted, false));
         gap(typing, 9);
         TextView example = text("TEST PHRASE   Ano na pare koy\n" +
@@ -225,7 +225,7 @@ public final class SettingsActivity extends Activity {
         typing.addView(example);
         gap(typing, 8);
         typing.addView(text(
-                "ABC tip: To enter N then O on the same 6 key, use → to confirm N first.",
+                "ABC: press the same number again within 1.8 seconds to cycle its letters. Use → to confirm one letter before typing another on the same key.",
                 12, muted, false));
 
         LinearLayout layout = card(root, "One-handed layout",

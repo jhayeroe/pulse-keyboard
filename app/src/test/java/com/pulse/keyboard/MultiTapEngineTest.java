@@ -34,9 +34,17 @@ public class MultiTapEngineTest {
     @Test public void timeoutStartsNewLetter() {
         MultiTapEngine engine = new MultiTapEngine();
         assertEquals("a", engine.onDigit(2, 1000L, false).letter);
-        MultiTapEngine.Tap tap = engine.onDigit(2, 2301L, false);
+        MultiTapEngine.Tap tap = engine.onDigit(2, 2901L, false);
         assertEquals("a", tap.letter);
         assertFalse(tap.cyclesExisting);
+    }
+
+    @Test public void slowerTapsStillCycleWithin1800ms() {
+        MultiTapEngine engine = new MultiTapEngine();
+        assertEquals("m", engine.onDigit(6, 0L, false).letter);
+        assertEquals("n", engine.onDigit(6, 1500L, false).letter);
+        assertEquals("o", engine.onDigit(6, 3000L, false).letter);
+        assertFalse(engine.onDigit(6, 4900L, false).cyclesExisting);
     }
 
     @Test public void capitalizationPersistsAcrossCycle() {

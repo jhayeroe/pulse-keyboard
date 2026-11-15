@@ -3,13 +3,14 @@ package com.pulse.keyboard;
 /**
  * Predictable 3x4 classic phone multi-tap state machine.
  *
- * The Android IME displays each Tap through setComposingText, so cycling
- * replaces the composing letter rather than deleting surrounding text.
+ * The Android IME commits the first letter and replaces that character on
+ * subsequent taps through InputConnection, including chat editors that
+ * do not reliably retain Android composing spans.
  * Calling confirm() commits the active letter and allows another letter
  * from the same numeric key without waiting.
  */
 public final class MultiTapEngine {
-    public static final long CYCLE_WINDOW_MS = 1200L;
+    public static final long CYCLE_WINDOW_MS = 1800L;
     private static final String[] LETTERS = {
         "", ".,!?':;@", "abc", "def", "ghi", "jkl",
         "mno", "pqrs", "tuv", "wxyz"
