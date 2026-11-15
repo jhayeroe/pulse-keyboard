@@ -177,7 +177,7 @@ public final class PulseImeService extends InputMethodService {
         textColor = darkTheme ? Color.WHITE : Color.rgb(23, 37, 56);
         subColor = darkTheme ? Color.rgb(158, 173, 196) : Color.rgb(105, 116, 135);
         borderColor = darkTheme ? Color.rgb(74, 86, 107) : Color.rgb(208, 217, 228);
-        accent = darkTheme ? Color.rgb(109, 176, 255) : Color.rgb(31, 98, 206);
+        accent = darkTheme ? Color.rgb(165, 126, 250) : Color.rgb(115, 63, 203);
     }
 
     private GradientDrawable background(int color) {
@@ -231,66 +231,84 @@ public final class PulseImeService extends InputMethodService {
         row.addView(key(label, description, size, height, utility, action));
     }
 
+    /**
+     * The keyboard is always screen-width. The utility panel uses 25% and the
+     * phone keypad uses 75%, regardless of portrait or landscape orientation.
+     * The percentage setting adjusts the two panels, NOT the overall width.
+     */
     private void buildKeyboard() {
         if (frame == null || body == null) return;
         colors();
         frame.setBackgroundColor(backdrop);
-        int widthPct = Math.max(60, Math.min(100, prefs.getInt("width_percent", 75)));
-        int width = Math.round(getResources().getDisplayMetrics().widthPixels
-                * widthPct / 100f);
-        int side = prefs.getBoolean("align_right", true)
-                ? Gravity.RIGHT : Gravity.LEFT;
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
-                width, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM | side);
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                Gravity.BOTTOM);
         body.setLayoutParams(params);
-        body.setPadding(dp(3), dp(5), dp(3), dp(6));
+        body.setPadding(dp(2), dp(5), dp(2), dp(6));
         body.setBackgroundColor(backdrop);
         body.removeAllViews();
+
         drawToolbar();
         drawSuggestions();
-        if ("tools".equals(panel)) drawTools();
-        if ("emoji".equals(panel)) drawEmoji();
-        else if ("symbols".equals(panel)) drawSymbols();
-        else drawNumberGrid();
-        drawBottomControls();
+
+        int height = Math.max(38, Math.min(66, prefs.getInt("key_height_dp", 44)));
+        int keypadPercent = Math.max(65, Math.min(85,
+                prefs.getInt("width_percent", 75)));
+        LinearLayout split = row();
+        split.setGravity(Gravity.BOTTOM);
+
+        LinearLayout utilities = new LinearLayout(this);
+        utilities.setOrientation(LinearLayout.VERTICAL);
+        utilities.setPadding(0, 0, dp(2), 0);
+        LinearLayout keypad = new LinearLayout(this);
+        keypad.setOrientation(LinearLayout.VERTICAL);
+        keypad.setPadding(dp(2), 0, 0, 0);
+
+        drawLeftPanel(utilities, height);
+        if ("emoji".equals(panel)) drawEmoji(keypad);
+        else if ("symbols".equals(panel)) drawSymbols(keypad);
+        else drawNumberGrid(keypad);
+
+        LinearLayout.LayoutParams utilityParams = new LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, 100 - keypadPercent);
+        LinearLayout.LayoutParams keypadParams = new LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, keypadPercent);
+
+        boolean right = prefs.getBoolean("align_right", true);
+        if (right) {
+            split.addView(utilities, utilityParams);
+            split.addView(keypad, keypadParams);
+        } else {
+            split.addView(keypad, keypadParams);
+            split.addView(utilities, utilityParams);
+        }
+        body.addView(split);
         updateSuggestions();
     }
 
+    /** The top row spans the full width and contains only actionable controls. */
     private void drawToolbar() {
         LinearLayout line = row();
-        add(line, passwordField ? "ABC" : (t9Mode ? "T9" : "ABC"),
-                t9Mode ? "T9 predictive is active: tap to enable old-phone ABC"
-                        : "ABC multi-tap is active: tap to enable T9 predictive",
-                13, 32, true, () -> {
+        add(line, "PULSE", "Choose another keyboard", 12, 35, true,
+                this::showKeyboardPicker);
+        add(line, numericMode ? "ABC" : "123", "Toggle number typing", 13, 35, true,
+                () -> {
                     finishT9();
                     finishMultiTap();
-                    if (!passwordField) {
-                        t9Mode = !t9Mode;
-                        prefs.edit().putBoolean("t9_mode", t9Mode).apply();
-                    }
+                    numericMode = !numericMode;
                     panel = "keys";
                     buildKeyboard();
                 });
-        add(line, shift ? "⇧" : "⇧", "Shift / uppercase", 17, 32, true,
-                () -> { finishMultiTap(); shift = !shift; buildKeyboard(); });
-        add(line, "⇆", "Move keypad to opposite side", 17, 32, true, () -> {
+        add(line, "⇆", "Switch keypad side", 18, 35, true, () -> {
             boolean right = !prefs.getBoolean("align_right", true);
             prefs.edit().putBoolean("align_right", right).apply();
             buildKeyboard();
         });
-        add(line, "☺", "Open or close emoji panel", 17, 32, true,
-                () -> { finishMultiTap(); finishT9(); panel = "emoji".equals(panel) ? "keys" : "emoji"; buildKeyboard(); });
-        add(line, "⋯", "Open symbols and clipboard tools", 21, 32, true,
-                () -> { panel = "tools".equals(panel) ? "keys" : "tools"; buildKeyboard(); });
-        add(line, "🌐", "Switch to another installed keyboard", 16, 32, true,
-                this::showKeyboardPicker);
-        add(line, "⚙", "Keyboard settings", 16, 32, true, () -> {
-            finishMultiTap();
-            finishT9();
-            Intent intent = new Intent(this, SettingsActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-        });
+        add(line, "+", "Save current word to personal dictionary", 19, 35, true,
+                this::addCurrentWord);
+        add(line, "⌄", "Hide keyboard", 22, 35, true,
+                () -> requestHideSelf(0));
         body.addView(line);
     }
 
@@ -307,20 +325,76 @@ public final class PulseImeService extends InputMethodService {
         body.addView(suggestions);
     }
 
-    private void drawTools() {
-        LinearLayout tools = row();
-        add(tools, "Symbols", "Symbols panel", 11, 34, true,
-                () -> { finishT9(); finishMultiTap(); panel = "symbols"; buildKeyboard(); });
-        add(tools, "Paste", "Paste from clipboard", 11, 34, true,
+    /**
+     * Five compact rows fill the same vertical space as four telephone rows.
+     * The panel has full-width ABC/T9, then four 2-column utility rows.
+     * At 25% width, icons (rather than long captions) stay touchable on phones.
+     */
+    private void drawLeftPanel(LinearLayout target, int keyHeight) {
+        int rightRow = keyHeight + 4;
+        int utilityHeight = Math.max(30, (4 * rightRow) / 5 - 4);
+
+        LinearLayout mode = row();
+        add(mode, passwordField ? "SECURE" : (t9Mode ? "T9 / ABC" : "ABC / T9"),
+                "Switch ABC multi-tap and T9 predictive typing", 12, utilityHeight,
+                true, () -> {
+                    if (passwordField) return;
+                    finishT9();
+                    finishMultiTap();
+                    t9Mode = !t9Mode;
+                    prefs.edit().putBoolean("t9_mode", t9Mode).apply();
+                    panel = "keys";
+                    buildKeyboard();
+                });
+        target.addView(mode);
+
+        LinearLayout caseAndSymbols = row();
+        add(caseAndSymbols, shift ? "⇧●" : "⇧", "Shift / uppercase",
+                16, utilityHeight, true,
+                () -> { finishMultiTap(); shift = !shift; buildKeyboard(); });
+        add(caseAndSymbols, "!? #", "Symbols panel",
+                12, utilityHeight, true, () -> {
+                    finishMultiTap();
+                    finishT9();
+                    panel = "symbols".equals(panel) ? "keys" : "symbols";
+                    buildKeyboard();
+                });
+        target.addView(caseAndSymbols);
+
+        LinearLayout emojiAndClipboard = row();
+        add(emojiAndClipboard, "☺", "Emoji panel", 20, utilityHeight, true,
+                () -> {
+                    finishMultiTap();
+                    finishT9();
+                    panel = "emoji".equals(panel) ? "keys" : "emoji";
+                    buildKeyboard();
+                });
+        add(emojiAndClipboard, "⎘", "Paste clipboard", 19, utilityHeight, true,
                 this::pasteClipboard);
-        add(tools, "Save", "Add current word to dictionary", 11, 34, true,
-                this::addCurrentWord);
-        add(tools, "Close", "Close tools", 11, 34, true,
-                () -> { panel = "keys"; buildKeyboard(); });
-        body.addView(tools);
+        target.addView(emojiAndClipboard);
+
+        LinearLayout switchAndSettings = row();
+        add(switchAndSettings, "🌐", "Switch to another installed keyboard",
+                17, utilityHeight, true, this::showKeyboardPicker);
+        add(switchAndSettings, "⚙", "Pulse Keyboard settings",
+                19, utilityHeight, true, () -> {
+                    finishMultiTap();
+                    finishT9();
+                    Intent intent = new Intent(this, SettingsActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                });
+        target.addView(switchAndSettings);
+
+        LinearLayout cursors = row();
+        add(cursors, "←", "Move cursor left", 22, utilityHeight, true,
+                () -> moveCursor(false));
+        add(cursors, "→", "Confirm letter or move cursor right",
+                22, utilityHeight, true, () -> moveCursor(true));
+        target.addView(cursors);
     }
 
-    private void drawNumberGrid() {
+    private void drawNumberGrid(LinearLayout target) {
         int height = Math.max(38, Math.min(66, prefs.getInt("key_height_dp", 44)));
         for (int line = 0; line < 3; line++) {
             LinearLayout digitRow = row();
@@ -344,7 +418,7 @@ public final class PulseImeService extends InputMethodService {
                 });
                 digitRow.addView(button);
             }
-            body.addView(digitRow);
+            target.addView(digitRow);
         }
         LinearLayout last = row();
         TextView back = key("*  ⌫", "Delete; hold to repeat", 16, height,
@@ -375,27 +449,10 @@ public final class PulseImeService extends InputMethodService {
         add(last, numericMode ? "0" : "0\nSPACE", "Space; zero in numeric mode",
                 16, height, false, this::space);
         add(last, "#  ↵", "Enter or next", 16, height, false, this::enter);
-        body.addView(last);
+        target.addView(last);
     }
 
-    private void drawBottomControls() {
-        LinearLayout line = row();
-        add(line, numericMode ? "ABC" : "123", "Toggle number mode",
-                13, 33, true, () -> {
-                    finishT9();
-                    finishMultiTap();
-                    numericMode = !numericMode;
-                    panel = "keys";
-                    buildKeyboard();
-                });
-        add(line, "←", "Move cursor left", 21, 33, true,
-                () -> moveCursor(false));
-        add(line, "→", "Confirm letter or move cursor right", 21, 33, true,
-                () -> moveCursor(true));
-        body.addView(line);
-    }
-
-    private void drawSymbols() {
+    private void drawSymbols(LinearLayout target) {
         String[] symbols = {
             "@", "#", "$", "%", "&", "*", "(", ")", "-",
             "+", "=", "/", ":", ";", "'", "\"", "?", "!",
@@ -408,11 +465,11 @@ public final class PulseImeService extends InputMethodService {
                 add(line, literal, "Insert " + literal, 18, 41, false,
                         () -> insertLiteral(literal));
             }
-            body.addView(line);
+            target.addView(line);
         }
     }
 
-    private void drawEmoji() {
+    private void drawEmoji(LinearLayout target) {
         ArrayList<String> all = new ArrayList<>();
         String recent = prefs.getString("recent_emojis", "");
         if (!recent.isEmpty()) {
@@ -430,7 +487,7 @@ public final class PulseImeService extends InputMethodService {
                     rememberEmoji(chosen);
                 });
             }
-            body.addView(line);
+            target.addView(line);
         }
     }
 
