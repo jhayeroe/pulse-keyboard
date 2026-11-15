@@ -228,8 +228,8 @@ public final class SettingsActivity extends Activity {
                 "ABC: press the same number again within 1.8 seconds to cycle its letters. Use → to confirm one letter before typing another on the same key.",
                 12, muted, false));
 
-        LinearLayout layout = card(root, "One-handed layout",
-                "Changes apply when you reopen the keyboard.");
+        LinearLayout layout = card(root, "Full-width split layout",
+                "Default: 25% utility controls + 75% main keypad. Changes apply when you reopen the keyboard.");
         layout.addView(text("Alignment", 14, fg, true));
         gap(layout, 8);
         LinearLayout side = new LinearLayout(this);
@@ -251,9 +251,9 @@ public final class SettingsActivity extends Activity {
         gap(layout, 16);
         TextView widthText = text("", 14, fg, true);
         layout.addView(widthText);
-        SeekBar width = slider(60, 100,
-                Math.max(60, Math.min(100, prefs.getInt("width_percent", 75))),
-                widthText, "Keypad width", "%", "width_percent");
+        SeekBar width = slider(65, 85,
+                Math.max(65, Math.min(85, prefs.getInt("width_percent", 75))),
+                widthText, "Main keypad share", "% of full keyboard", "width_percent");
         layout.addView(width);
         gap(layout, 13);
         TextView heightText = text("", 14, fg, true);
@@ -263,11 +263,11 @@ public final class SettingsActivity extends Activity {
                 heightText, "Key height", " dp", "key_height_dp");
         layout.addView(height);
         gap(layout, 4);
-        Button reset = button("Restore compact default layout", false);
+        Button reset = button("Restore 25/75 default layout", false);
         reset.setOnClickListener(v -> {
             prefs.edit().putBoolean("align_right", true)
                     .putInt("width_percent", 75).putInt("key_height_dp", 44).apply();
-            width.setProgress(15);
+            width.setProgress(10);
             height.setProgress(6);
             updateSideButtons(left, right);
             Toast.makeText(this, "Layout restored", Toast.LENGTH_SHORT).show();
