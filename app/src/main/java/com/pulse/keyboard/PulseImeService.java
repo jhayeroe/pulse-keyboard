@@ -245,12 +245,15 @@ public final class PulseImeService extends InputMethodService {
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 Gravity.BOTTOM);
         body.setLayoutParams(params);
-        body.setPadding(dp(2), dp(5), dp(2), dp(6));
+        // Reserve a comfortable touch-clearance above the system gesture bar.
+        body.setPadding(dp(2), dp(5), dp(2), dp(22));
         body.setBackgroundColor(backdrop);
         body.removeAllViews();
 
-        drawToolbar();
+        // Predictive words are the first/topmost row.
         drawSuggestions();
+        // Utility actions and cursor arrows are immediately below.
+        drawToolbar();
 
         int height = Math.max(38, Math.min(66, prefs.getInt("key_height_dp", 44)));
         int keypadPercent = Math.max(65, Math.min(85,
@@ -287,7 +290,7 @@ public final class PulseImeService extends InputMethodService {
         updateSuggestions();
     }
 
-    /** The top row spans the full width and contains only actionable controls. */
+    /** Second row: global actions, with cursor navigation at upper-right. */
     private void drawToolbar() {
         LinearLayout line = row();
         add(line, "PULSE", "Choose another keyboard", 12, 35, true,
@@ -309,6 +312,10 @@ public final class PulseImeService extends InputMethodService {
                 this::addCurrentWord);
         add(line, "⌄", "Hide keyboard", 22, 35, true,
                 () -> requestHideSelf(0));
+        add(line, "←", "Move cursor left", 22, 35, true,
+                () -> moveCursor(false));
+        add(line, "→", "Confirm letter or move cursor right", 22, 35, true,
+                () -> moveCursor(true));
         body.addView(line);
     }
 
@@ -326,13 +333,12 @@ public final class PulseImeService extends InputMethodService {
     }
 
     /**
-     * Five compact rows fill the same vertical space as four telephone rows.
-     * The panel has full-width ABC/T9, then four 2-column utility rows.
-     * At 25% width, icons (rather than long captions) stay touchable on phones.
+     * Four left-side rows align with the four phone keypad rows.
+     * Cursor arrows now live on the second full-width toolbar row (upper right).
+     * Icons (rather than captions) keep the 25% panel touchable on phones.
      */
     private void drawLeftPanel(LinearLayout target, int keyHeight) {
-        int rightRow = keyHeight + 4;
-        int utilityHeight = Math.max(30, (4 * rightRow) / 5 - 4);
+        int utilityHeight = keyHeight;
 
         LinearLayout mode = row();
         add(mode, passwordField ? "SECURE" : (t9Mode ? "T9 / ABC" : "ABC / T9"),
@@ -385,13 +391,6 @@ public final class PulseImeService extends InputMethodService {
                     startActivity(intent);
                 });
         target.addView(switchAndSettings);
-
-        LinearLayout cursors = row();
-        add(cursors, "←", "Move cursor left", 22, utilityHeight, true,
-                () -> moveCursor(false));
-        add(cursors, "→", "Confirm letter or move cursor right",
-                22, utilityHeight, true, () -> moveCursor(true));
-        target.addView(cursors);
     }
 
     private void drawNumberGrid(LinearLayout target) {

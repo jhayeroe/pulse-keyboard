@@ -1,4 +1,4 @@
-# Pulse Keyboard — Android Alpha (0.4)
+# Pulse Keyboard — Android Alpha (0.5)
 
 An **offline, one-handed, 3×4 Android keyboard** for Filipino/English typing.
 
@@ -10,8 +10,8 @@ An **offline, one-handed, 3×4 Android keyboard** for Filipino/English typing.
 - User-added personal words are stored **locally**; no automatic harvesting of typed text.
 - **Full-width split keyboard:** 25% compact utility panel on the left, 75% 3×4 keypad on the right. Switch sides if needed; adjust the main keypad share to 65–85% in settings. Key height 38–66dp (default 44dp).
 - Compact layout, 3×4 keypad: 1–9, * = Backspace, 0 = Space, # = Enter.
-- Left-panel controls: ABC/T9, Shift, Symbols, Emoji, Clipboard paste, Switch Keyboard, Settings, and ← / →. Right arrow confirms an active multi-tap letter.
-- Full-width toolbar, three suggestions, Shift, numeric mode, symbols, simple emoji/recent choices, and manual clipboard paste.
+- Left-panel controls: ABC/T9, Shift, Symbols, Emoji, Clipboard paste, Switch Keyboard and Settings. Cursor ← / → live at the upper-right of the second (toolbar) row. Right arrow confirms an active multi-tap letter.
+- Three suggestions on the very top row; full-width action toolbar immediately underneath, with the cursor arrows at the far right. Shift, numeric mode, symbols, simple emoji/recent choices, and manual clipboard paste.
 - A dedicated 🌐 switcher on the keyboard and **Switch Keyboard** in Settings open Android's input-method picker to return to your old keyboard.
 - Password fields suppress suggestions, word saving, and clipboard access.
 - Theme follows Android light/dark mode.
@@ -64,3 +64,13 @@ The keyboard now selects **ABC multi-tap** on first launch and once when upgradi
 ## Alpha 0.4 layout update
 
 The previously 75%-wide *entire keyboard* is now replaced by a **full-width 25/75 split**. The left panel contains compact utility controls, while the 3×4 phone keypad receives 75% of the available width. The 3×4 bottom row remains `* = Backspace`, `0 = Space`, `# = Enter / Next`. The width slider now means **main keypad share**, not overall keyboard width. The build workflow remains unchanged and should produce a fresh alpha prerelease after this commit if GitHub Actions succeeds.
+
+## Alpha 0.5 layout update
+
+- **First row:** Three predictive suggestions, full screen width.
+- **Second row:** PULSE, 123/ABC, side-switch, save-word, hide-keyboard, **←, →** (arrows at upper-right).
+- **Bottom:** 25% left utility panel and 75% right 3×4 keypad, customizable in Settings.
+- **Gesture-bar clearance:** Extra 16dp of blank space (22dp total bottom padding) below the last key row.
+- In the utility panel the old cursor row was removed, so the four remaining rows align with the 3×4 keypad.
+
+Test keypad position and arrow behavior on your phone. This is not a verified device build until testing completes.
